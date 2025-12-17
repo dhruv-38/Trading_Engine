@@ -27,7 +27,7 @@
   {
     "id": "orders",
     "config": {
-      "src/trading/api/place-order.step.ts": {
+      "src/trading/api/cancel-order.step.ts": {
         "x": 0,
         "y": 0
       }
@@ -36,9 +36,29 @@
   {
     "id": "order-management",
     "config": {
+      "src/trading/events/record-trade.step.ts": {
+        "x": 447,
+        "y": -1
+      },
+      "src/trading/events/record-cancellation.step.ts": {
+        "x": 437,
+        "y": 227
+      },
       "src/trading/events/process-order.step.ts": {
-        "x": 0,
-        "y": 0
+        "x": -153,
+        "y": 24
+      },
+      "src/trading/events/process-cancellation.step.ts": {
+        "x": -207,
+        "y": 206
+      },
+      "src/trading/api/place-order.step.ts": {
+        "x": -915,
+        "y": -85
+      },
+      "src/trading/api/cancel-order.step.ts": {
+        "x": -947,
+        "y": 183
       }
     }
   }

@@ -12,8 +12,12 @@ declare module 'motia' {
   }
 
   interface Handlers {
-    'ProcessOrder': EventHandler<{ orderId: string; instrument: 'AAPL' }, never>
-    'PlaceOrder': ApiRouteHandler<{ side: 'BUY' | 'SELL'; type: 'LIMIT' | 'MARKET'; instrument: 'AAPL'; price?: number; quantity: number }, ApiResponse<201, { orderId: string }> | ApiResponse<400, { error: string }>, { topic: 'order.placed'; data: { orderId: string; instrument: 'AAPL' } }>
+    'RecordTrade': EventHandler<{ tradeId: string; buyOrderId: string; sellOrderId: string; instrument: 'AAPL' }, never>
+    'RecordCancellation': EventHandler<{ orderId: string; instrument: 'AAPL'; side: 'BUY' | 'SELL' }, never>
+    'ProcessOrder': EventHandler<{ orderId: string; instrument: 'AAPL' }, { topic: 'trade.executed'; data: { tradeId: string; buyOrderId: string; sellOrderId: string; instrument: 'AAPL' } }>
+    'ProcessCancellation': EventHandler<{ orderId: string; instrument: 'AAPL'; side: 'BUY' | 'SELL' }, { topic: 'cancellation.recorded'; data: { orderId: string; instrument: 'AAPL'; side: 'BUY' | 'SELL' } }>
+    'PlaceOrder': ApiRouteHandler<{ userId: string; side: 'BUY' | 'SELL'; type: 'LIMIT' | 'MARKET'; instrument: 'AAPL'; price?: number; quantity: number }, ApiResponse<201, { orderId: string }> | ApiResponse<400, { error: string }>, { topic: 'order.placed'; data: { orderId: string; instrument: 'AAPL' } }>
+    'CancelOrder': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { orderId: string; status: string }> | ApiResponse<400, { error: string }> | ApiResponse<404, { error: string }> | ApiResponse<500, { error: string }>, { topic: 'order.cancelled'; data: { orderId: string; instrument: 'AAPL'; side: 'BUY' | 'SELL' } }>
     'StateAuditJob': CronHandler<{ topic: 'notification'; data: { templateId: string; email: string; templateData: Record<string, unknown> } }>
     'ProcessFoodOrder': EventHandler<{ email: string; quantity: number; petId: string }, { topic: 'notification'; data: { templateId: string; email: string; templateData: Record<string, unknown> } }>
     'Notification': EventHandler<{ templateId: string; email: string; templateData: Record<string, unknown> }, never>

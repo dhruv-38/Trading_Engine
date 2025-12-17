@@ -14,6 +14,7 @@ export type Instrument = z.infer<typeof InstrumentSchema>;
 
 export const OrderSchema = z.object({
   id: z.string(),
+  userId: z.string(),
   side: OrderSideSchema,
   type: OrderTypeSchema,
   status: OrderStatusSchema,
@@ -22,7 +23,13 @@ export const OrderSchema = z.object({
   quantity: z.number().positive(),
   remainingQuantity: z.number().nonnegative(),
   timestamp: z.number(),
-});
+}).refine(
+  (data) => data.type === 'MARKET' || (data.type === 'LIMIT' && typeof data.price === 'number'),
+  { message: 'LIMIT orders must have a price', path: ['price'] }
+).refine(
+  (data) => !data.price || Math.abs((data.price * 100) % 1) < Number.EPSILON,
+  { message: 'Price must be in 0.01 increments', path: ['price'] }
+);
 
 export type Order = z.infer<typeof OrderSchema>;
 
@@ -39,6 +46,7 @@ export const TradeSchema = z.object({
 export type Trade = z.infer<typeof TradeSchema>;
 
 export const PlaceOrderInputSchema = OrderSchema.pick({
+  userId: true,
   side: true,
   type: true,
   instrument: true,
@@ -62,3 +70,11 @@ export const TradeExecutedPayloadSchema = z.object({
 });
 
 export type TradeExecutedPayload = z.infer<typeof TradeExecutedPayloadSchema>;
+
+export const OrderCancelledPayloadSchema = z.object({
+  orderId: z.string(),
+  instrument: InstrumentSchema,
+  side: OrderSideSchema,
+});
+
+export type OrderCancelledPayload = z.infer<typeof OrderCancelledPayloadSchema>;
