@@ -1,5 +1,7 @@
 import { EventConfig, Handlers } from "motia";
-import { OrderPlacedPayloadSchema } from "../types";
+import { Order, OrderPlacedPayloadSchema } from "../types";
+import { OrderBook } from "../services/order-book";
+import { MatchingEngine } from "../services/matching-engine";
 
 export const config: EventConfig = {
     type: 'event',
@@ -7,23 +9,78 @@ export const config: EventConfig = {
     description: 'Here, Process new orders',
     flows: ['order-management'],
     subscribes: ['order.placed'],
-    emits: [],
+    emits: ['trade.executed'],
     input: OrderPlacedPayloadSchema,
 };
 
-export const handler: Handlers['ProcessOrder'] = async (input, { state, logger }) => {
+export const handler: Handlers['ProcessOrder'] = async (input, { state, logger, emit: emitFn }) => {
+    const emit = emitFn as any;
     const { orderId, instrument } = input;
-    const order = await state.get('orders', orderId);
+    const order = await state.get<Order>('orders', orderId);
     if (!order) {
         logger.warn('Order not found', { orderId });
         return;
     }
     order.status = 'OPEN';
     await state.set('orders', orderId, order);
-    logger.info('Order processed', {
-        orderId,
-        instrument: order.instrument,
-        status: order.status
-    });
+    const orderBook = new OrderBook(state);
+    const matchingEngine = new MatchingEngine();
 
+    const oppositeOrders = order.side === 'BUY'
+        ? await orderBook.getSellOrders(instrument)
+        : await orderBook.getBuyOrders(instrument);
+
+    const trades = matchingEngine.matchOrder(order, oppositeOrders);
+    if (order.remainingQuantity === 0) {
+        order.status = 'FILLED';
+    } else if (order.remainingQuantity < order.quantity) {
+        order.status = 'PARTIALLY_FILLED';
+    }
+    
+    await state.set('orders', order.id, order);
+    
+    for (const trade of trades) {
+        await state.set('trades', trade.id, trade);
+        await emit({
+            topic: 'trade.executed',
+            data: {
+                tradeId: trade.id,
+                buyOrderId: trade.buyOrderId,
+                sellOrderId: trade.sellOrderId,
+                instrument: trade.instrument,
+            }
+        });
+
+        logger.info('Trade executed', {
+            tradeId: trade.id,
+            instrument: trade.instrument,
+            price: trade.price,
+            quantity: trade.quantity
+        });
+    }
+    
+    for (const bookOrder of oppositeOrders) {
+        if (bookOrder.remainingQuantity !== bookOrder.quantity) {
+            bookOrder.status = bookOrder.remainingQuantity === 0 ? 'FILLED' : 'PARTIALLY_FILLED';
+            await state.set('orders', bookOrder.id, bookOrder);
+            if (bookOrder.remainingQuantity === 0) {
+                await orderBook.removeOrder(bookOrder.id, bookOrder.instrument, bookOrder.side);
+            }
+        }
+    }
+
+    if (order.remainingQuantity > 0) {
+        await orderBook.addOrder(order);
+        logger.info('Order added to book', {
+            orderId: order.id,
+            side: order.side,
+            remainingQuantity: order.remainingQuantity
+        });
+    }
+
+    logger.info('Order processing complete', {
+        orderId,
+        tradesCreated: trades.length,
+        finalStatus: order.status
+    });
 }
