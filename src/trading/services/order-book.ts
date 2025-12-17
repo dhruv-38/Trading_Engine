@@ -1,5 +1,5 @@
 import { InternalStateManager } from "motia";
-import { Instrument, Order, OrderSide } from "../types";
+import { Instrument, Order, OrderSide } from "./types";
 
 export class OrderBook{
     constructor (private state:InternalStateManager){}

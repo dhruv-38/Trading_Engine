@@ -1,18 +1,24 @@
-import { Order, Trade } from "../types";
+import { Order, Trade } from "./types";
 
 export class MatchingEngine{
     matchOrder(incomingOrder:Order,bookOrders: Order[]): Trade[]{
         const trades: Trade[]= [];
 
         for(const bookOrder of bookOrders){
-            if (incomingOrder.side === 'BUY'){
-                if(incomingOrder.price! < bookOrder.price!){
-                    break;
-                }
+            if (incomingOrder.userId === bookOrder.userId) {
+                continue;
             }
-            if (incomingOrder.side === 'SELL'){
-                if(incomingOrder.price! > bookOrder.price!){
-                    break;
+            
+            if (incomingOrder.type === 'LIMIT') {
+                if (incomingOrder.side === 'BUY'){
+                    if(incomingOrder.price! < bookOrder.price!){
+                        break;
+                    }
+                }
+                if (incomingOrder.side === 'SELL'){
+                    if(incomingOrder.price! > bookOrder.price!){
+                        break;
+                    }
                 }
             }
             const tradeQty = Math.min(incomingOrder.remainingQuantity, bookOrder.remainingQuantity);
