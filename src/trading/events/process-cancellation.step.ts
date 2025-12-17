@@ -23,6 +23,15 @@ export const handler: Handlers['ProcessCancellation'] = async (input, { state, l
             return;
         }
 
+        // Re-validate status to prevent race conditions
+        if (order.status === 'FILLED' || order.status === 'CANCELLED') {
+            logger.warn('Order already in terminal state, skipping cancellation', { 
+                orderId, 
+                status: order.status 
+            });
+            return;
+        }
+
         order.status = 'CANCELLED';
         await state.set('orders', orderId, order);
 

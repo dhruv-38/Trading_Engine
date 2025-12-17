@@ -19,13 +19,16 @@ export const OrderSchema = z.object({
   type: OrderTypeSchema,
   status: OrderStatusSchema,
   instrument: InstrumentSchema,
-  price: z.number().positive().multipleOf(0.01).optional(),
+  price: z.number().positive().optional(),
   quantity: z.number().positive(),
   remainingQuantity: z.number().nonnegative(),
   timestamp: z.number(),
 }).refine(
   (data) => data.type === 'MARKET' || (data.type === 'LIMIT' && typeof data.price === 'number'),
   { message: 'LIMIT orders must have a price', path: ['price'] }
+).refine(
+  (data) => !data.price || Math.abs((data.price * 100) % 1) < Number.EPSILON,
+  { message: 'Price must be in 0.01 increments', path: ['price'] }
 );
 
 export type Order = z.infer<typeof OrderSchema>;

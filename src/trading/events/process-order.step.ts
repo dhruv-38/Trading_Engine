@@ -87,10 +87,10 @@ export const handler: Handlers['ProcessOrder'] = async (input, { state, logger, 
     } catch (error) {
         logger.error('Order processing failed', { error, orderId, instrument });
         try {
-            const order = await state.get<Order>('orders', orderId);
-            if (order && order.status !== 'FILLED') {
-                order.status = 'CANCELLED';
-                await state.set('orders', orderId, order);
+            const failedOrder = await state.get<Order>('orders', orderId);
+            if (failedOrder && failedOrder.status !== 'FILLED') {
+                failedOrder.status = 'CANCELLED';
+                await state.set('orders', orderId, failedOrder);
             }
         } catch (cleanupError) {
             logger.error('Cleanup failed', { cleanupError, orderId });
