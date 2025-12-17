@@ -12,6 +12,8 @@ declare module 'motia' {
   }
 
   interface Handlers {
+    'ProcessOrder': EventHandler<{ orderId: string; instrument: 'AAPL' }, never>
+    'PlaceOrder': ApiRouteHandler<{ side: 'BUY' | 'SELL'; type: 'LIMIT' | 'MARKET'; instrument: 'AAPL'; price?: number; quantity: number }, ApiResponse<201, { orderId: string }> | ApiResponse<400, { error: string }>, { topic: 'order.placed'; data: { orderId: string; instrument: 'AAPL' } }>
     'StateAuditJob': CronHandler<{ topic: 'notification'; data: { templateId: string; email: string; templateData: Record<string, unknown> } }>
     'ProcessFoodOrder': EventHandler<{ email: string; quantity: number; petId: string }, { topic: 'notification'; data: { templateId: string; email: string; templateData: Record<string, unknown> } }>
     'Notification': EventHandler<{ templateId: string; email: string; templateData: Record<string, unknown> }, never>

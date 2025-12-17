@@ -23,5 +23,23 @@
         "sourceHandlePosition": "right"
       }
     }
+  },
+  {
+    "id": "orders",
+    "config": {
+      "src/trading/api/place-order.step.ts": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  },
+  {
+    "id": "order-management",
+    "config": {
+      "src/trading/events/process-order.step.ts": {
+        "x": 0,
+        "y": 0
+      }
+    }
   }
 ]
