@@ -37,3 +37,28 @@ export const TradeSchema = z.object({
 });
 
 export type Trade = z.infer<typeof TradeSchema>;
+
+export const PlaceOrderInputSchema = OrderSchema.pick({
+  side: true,
+  type: true,
+  instrument: true,
+  price: true,
+  quantity: true,
+});
+export type PlaceOrderInput = z.infer<typeof PlaceOrderInputSchema>;
+
+export const OrderPlacedPayloadSchema = z.object({
+  orderId: z.string(),
+  instrument: InstrumentSchema,
+});
+
+export type OrderPlacedPayload = z.infer<typeof OrderPlacedPayloadSchema>;
+
+export const TradeExecutedPayloadSchema = z.object({
+  tradeId: z.string(),
+  buyOrderId: z.string(),
+  sellOrderId: z.string(),
+  instrument: InstrumentSchema,
+});
+
+export type TradeExecutedPayload = z.infer<typeof TradeExecutedPayloadSchema>;
