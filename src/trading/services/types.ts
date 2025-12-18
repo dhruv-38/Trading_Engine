@@ -6,7 +6,10 @@ export type OrderSide = z.infer<typeof OrderSideSchema>;
 export const OrderTypeSchema = z.enum(['LIMIT','MARKET']);
 export type OrderType = z.infer<typeof OrderTypeSchema>;
 
-export const OrderStatusSchema = z.enum(['PENDING', 'OPEN', 'PARTIALLY_FILLED', 'FILLED', 'CANCELLED']);
+export const TimeInForceSchema = z.enum(['GTC', 'DAY', 'IOC']);
+export type TimeInForce = z.infer<typeof TimeInForceSchema>;
+
+export const OrderStatusSchema = z.enum(['PENDING', 'OPEN', 'PARTIALLY_FILLED', 'FILLED', 'CANCELLED', 'EXPIRED']);
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;
 
 export const InstrumentSchema = z.enum(['AAPL']);
@@ -23,11 +26,13 @@ export const OrderSchema = z.object({
   quantity: z.number().positive(),
   remainingQuantity: z.number().nonnegative(),
   timestamp: z.number(),
+  timeInForce: TimeInForceSchema.default('GTC'),
+  expiresAt: z.number().optional(),
 }).refine(
   (data) => data.type === 'MARKET' || (data.type === 'LIMIT' && typeof data.price === 'number'),
   { message: 'LIMIT orders must have a price', path: ['price'] }
 ).refine(
-  (data) => !data.price || Math.abs((data.price * 100) % 1) < Number.EPSILON,
+  (data) => !data.price || Math.abs(data.price - Math.round(data.price * 100) / 100) < 1e-9,
   { message: 'Price must be in 0.01 increments', path: ['price'] }
 );
 
@@ -52,6 +57,7 @@ export const PlaceOrderInputSchema = OrderSchema.pick({
   instrument: true,
   price: true,
   quantity: true,
+  timeInForce: true,
 });
 export type PlaceOrderInput = z.infer<typeof PlaceOrderInputSchema>;
 

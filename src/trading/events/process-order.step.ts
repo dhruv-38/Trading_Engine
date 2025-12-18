@@ -32,6 +32,15 @@ export const handler: Handlers['ProcessOrder'] = async (input, { state, logger, 
         : await orderBook.getBuyOrders(instrument);
 
     const trades = matchingEngine.matchOrder(order, oppositeOrders);
+    
+    if (order.remainingQuantity < 0) {
+        logger.error('CRITICAL: Negative remaining quantity detected', {
+            orderId: order.id,
+            remainingQuantity: order.remainingQuantity,
+        });
+        order.remainingQuantity = 0;
+    }
+    
     if (order.remainingQuantity === 0) {
         order.status = 'FILLED';
     } else if (order.remainingQuantity < order.quantity) {
@@ -71,12 +80,32 @@ export const handler: Handlers['ProcessOrder'] = async (input, { state, logger, 
     }
 
     if (order.remainingQuantity > 0 && order.type === 'LIMIT') {
-        await orderBook.addOrder(order);
-        logger.info('Order added to book', {
-            orderId: order.id,
-            side: order.side,
-            remainingQuantity: order.remainingQuantity
-        });
+        const buyOrders = await orderBook.getBuyOrders(instrument);
+        const sellOrders = await orderBook.getSellOrders(instrument);
+        
+        const bestBid = buyOrders.length > 0 ? buyOrders[0].price : undefined;
+        const bestAsk = sellOrders.length > 0 ? sellOrders[0].price : undefined;
+        
+        if (order.side === 'BUY' && bestAsk !== undefined && order.price! >= bestAsk) {
+            logger.error('CRITICAL: Crossed book detected - BUY order price >= best ASK', {
+                orderId: order.id,
+                buyPrice: order.price,
+                bestAsk,
+            });
+        } else if (order.side === 'SELL' && bestBid !== undefined && order.price! <= bestBid) {
+            logger.error('CRITICAL: Crossed book detected - SELL order price <= best BID', {
+                orderId: order.id,
+                sellPrice: order.price,
+                bestBid,
+            });
+        } else {
+            await orderBook.addOrder(order);
+            logger.info('Order added to book', {
+                orderId: order.id,
+                side: order.side,
+                remainingQuantity: order.remainingQuantity
+            });
+        }
     }
 
     logger.info('Order processing complete', {

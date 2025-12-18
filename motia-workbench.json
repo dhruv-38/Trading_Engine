@@ -36,21 +36,41 @@
   {
     "id": "order-management",
     "config": {
-      "src/trading/events/record-trade.step.ts": {
-        "x": 447,
-        "y": -1
+      "src/.motia/compiled/trading/events/process-order.step.js": {
+        "x": 260,
+        "y": 416
+      },
+      "src/.motia/compiled/trading/api/cancel-order.step.js": {
+        "x": 0,
+        "y": 0
+      },
+      "src/.motia/compiled/trading/events/process-cancellation.step.js": {
+        "x": 251,
+        "y": 34
+      },
+      "src/.motia/compiled/trading/events/record-cancellation.step.js": {
+        "x": 490,
+        "y": 24
+      },
+      "src/.motia/compiled/trading/events/record-trade.step.js": {
+        "x": 490,
+        "y": 406
+      },
+      "src/trading/events/process-order.step.ts": {
+        "x": -592,
+        "y": 492
       },
       "src/trading/events/record-cancellation.step.ts": {
         "x": 437,
         "y": 227
       },
-      "src/trading/events/process-order.step.ts": {
-        "x": -153,
-        "y": 24
+      "src/trading/events/record-trade.step.ts": {
+        "x": 447,
+        "y": -1
       },
       "src/trading/events/process-cancellation.step.ts": {
-        "x": -207,
-        "y": 206
+        "x": -425,
+        "y": -567
       },
       "src/trading/api/place-order.step.ts": {
         "x": -915,
@@ -59,6 +79,10 @@
       "src/trading/api/cancel-order.step.ts": {
         "x": -947,
         "y": 183
+      },
+      "src/.motia/compiled/trading/api/place-order.step.js": {
+        "x": 10,
+        "y": 609
       }
     }
   }
