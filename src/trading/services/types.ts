@@ -84,3 +84,33 @@ export const OrderCancelledPayloadSchema = z.object({
 });
 
 export type OrderCancelledPayload = z.infer<typeof OrderCancelledPayloadSchema>;
+
+export const PositionSchema = z.object({
+  userId: z.string(),
+  instrument: InstrumentSchema,
+  quantity: z.number(),
+  averagePrice: z.number().positive(),
+  realizedPnL: z.number(),
+  unrealizedPnL: z.number(),
+  lastUpdated: z.number(),
+});
+
+export type Position = z.infer<typeof PositionSchema>;
+
+export const QuoteSchema = z.object({
+  bidOrderId: z.string(),
+  askOrderId: z.string(),
+  instrument: InstrumentSchema,
+  createdAt: z.number(),
+  userId: z.string(),
+});
+
+export type Quote = z.infer<typeof QuoteSchema>;
+
+export const QuotePlacedPayloadSchema = z.object({
+  bidOrderId: z.string(),
+  askOrderId: z.string(),
+  instrument: InstrumentSchema,
+});
+
+export type QuotePlacedPayload = z.infer<typeof QuotePlacedPayloadSchema>;

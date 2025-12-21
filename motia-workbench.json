@@ -36,41 +36,57 @@
   {
     "id": "order-management",
     "config": {
-      "src/.motia/compiled/trading/events/process-order.step.js": {
-        "x": 260,
-        "y": 416
-      },
-      "src/.motia/compiled/trading/api/cancel-order.step.js": {
-        "x": 0,
-        "y": 0
-      },
-      "src/.motia/compiled/trading/events/process-cancellation.step.js": {
-        "x": 251,
-        "y": 34
-      },
-      "src/.motia/compiled/trading/events/record-cancellation.step.js": {
-        "x": 490,
-        "y": 24
-      },
-      "src/.motia/compiled/trading/events/record-trade.step.js": {
-        "x": 490,
-        "y": 406
-      },
-      "src/trading/events/process-order.step.ts": {
-        "x": -592,
-        "y": 492
+      "src/trading/events/record-trade.step.ts": {
+        "x": 898,
+        "y": -104
       },
       "src/trading/events/record-cancellation.step.ts": {
         "x": 437,
         "y": 227
       },
-      "src/trading/events/record-trade.step.ts": {
-        "x": 447,
-        "y": -1
+      "src/trading/events/publish-trade-feed.step.ts": {
+        "x": 735,
+        "y": 430
+      },
+      "src/trading/events/publish-orderbook-feed.step.ts": {
+        "x": 564,
+        "y": -319
+      },
+      "src/trading/events/publish-orderbook-feed-on-trade.step.ts": {
+        "x": 712,
+        "y": 741
+      },
+      "src/trading/events/publish-orderbook-feed-on-cancel.step.ts": {
+        "x": 700,
+        "y": 876
+      },
+      "src/trading/events/process-order.step.ts": {
+        "x": -757,
+        "y": 711
       },
       "src/trading/events/process-cancellation.step.ts": {
         "x": -425,
         "y": -567
+      },
+      "src/trading/events/cancel-stale-quotes.step.ts": {
+        "x": 350,
+        "y": 876
+      },
+      "src/trading/cron/retail-trader-sim.step.ts": {
+        "x": 0,
+        "y": 0
+      },
+      "src/trading/cron/market-maker.step.ts": {
+        "x": -955,
+        "y": 1123
+      },
+      "src/trading/cron/expire-orders.step.ts": {
+        "x": 22,
+        "y": 422
+      },
+      "src/trading/api/replay-orderbook.step.ts": {
+        "x": 0,
+        "y": 621
       },
       "src/trading/api/place-order.step.ts": {
         "x": -915,
@@ -79,10 +95,6 @@
       "src/trading/api/cancel-order.step.ts": {
         "x": -947,
         "y": 183
-      },
-      "src/.motia/compiled/trading/api/place-order.step.js": {
-        "x": 10,
-        "y": 609
       }
     }
   }

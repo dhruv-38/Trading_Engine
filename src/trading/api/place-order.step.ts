@@ -2,6 +2,7 @@ import { ApiRouteConfig, Handlers } from "motia";
 import { Order, OrderSchema, PlaceOrderInputSchema } from "../services/types";
 import {z} from "zod";
 import {randomUUID} from "crypto";
+import { errorHandler } from "../middlewares/error-handler.middleware";
 
 export const config: ApiRouteConfig = {
     type: 'api',
@@ -17,13 +18,14 @@ export const config: ApiRouteConfig = {
         201: z.object({orderId: z.string()}),
         400: z.object({error: z.string()}),
     },
+    middleware:[errorHandler],
 
 };
 
 const RISK_LIMITS = {
     MAX_ORDER_SIZE: 10000,
     MAX_OPEN_ORDERS_PER_USER: 100,
-    MAX_NOTIONAL_PER_ORDER: 1000000, // $1M
+    MAX_NOTIONAL_PER_ORDER: 1000000,
 };
 
 export const handler: Handlers['PlaceOrder'] = async (req,{emit,state,logger}) =>{

@@ -1,6 +1,7 @@
 import { ApiRouteConfig, Handlers } from "motia";
 import { Order } from "../services/types";
 import { z } from "zod";
+import { errorHandler } from "../middlewares/error-handler.middleware";
 
 export const config: ApiRouteConfig = {
     type: 'api',
@@ -16,6 +17,7 @@ export const config: ApiRouteConfig = {
         400: z.object({ error: z.string() }),
         500: z.object({ error: z.string() }),
     },
+    middleware:[errorHandler], 
 };
 
 export const handler: Handlers['CancelOrder'] = async (req, { emit, state, logger }) => {

@@ -8,18 +8,26 @@ import { EventHandler, ApiRouteHandler, ApiResponse, MotiaStream, CronHandler } 
 
 declare module 'motia' {
   interface FlowContextStateStreams {
-    
+    'tradeFeed': MotiaStream<{ id: string; price: number; quantity: number; instrument: 'AAPL'; sellOrderId: string; buyOrderId: string; timestamp: number }>
+    'orderbookFeed': MotiaStream<{ instrument: string; timestamp: number; bids: Array<{ price: number; quantity: number; orders: number }>; asks: Array<{ price: number; quantity: number; orders: number }>; spread: string | unknown }>
   }
 
   interface Handlers {
     'RecordTrade': EventHandler<{ tradeId: string; buyOrderId: string; sellOrderId: string; instrument: 'AAPL' }, never>
     'RecordCancellation': EventHandler<{ orderId: string; instrument: 'AAPL'; side: 'BUY' | 'SELL' }, never>
-    'ProcessOrder': EventHandler<{ orderId: string; instrument: 'AAPL' }, { topic: 'trade.executed'; data: { tradeId: string; buyOrderId: string; sellOrderId: string; instrument: 'AAPL' } }>
+    'PublishTradeFeed': EventHandler<{ tradeId: string; buyOrderId: string; sellOrderId: string; instrument: 'AAPL' }, never>
+    'PublishOrderbookFeed': EventHandler<{ orderId: string; instrument: 'AAPL' }, never>
+    'PublishOrderbookFeedOnTrade': EventHandler<{ tradeId: string; buyOrderId: string; sellOrderId: string; instrument: 'AAPL' }, never>
+    'PublishOrderbookFeedOnCancel': EventHandler<{ orderId: string; instrument: 'AAPL'; side: 'BUY' | 'SELL' }, never>
+    'ProcessOrder': EventHandler<{ orderId: string; instrument: 'AAPL' }, { topic: 'trade.executed'; data: { tradeId: string; buyOrderId: string; sellOrderId: string; instrument: string } }>
     'ProcessCancellation': EventHandler<{ orderId: string; instrument: 'AAPL'; side: 'BUY' | 'SELL' }, { topic: 'cancellation.recorded'; data: { orderId: string; instrument: 'AAPL'; side: 'BUY' | 'SELL' } }>
+    'CancelStaleQuotes': EventHandler<{ bidOrderId: string; askOrderId: string; instrument: 'AAPL' }, { topic: 'order.cancelled'; data: { orderId: string; instrument: string; side: string } }>
+    'RetailTraderSimulator': CronHandler<{ topic: 'order.placed'; data: { orderId: string; instrument: string } }>
+    'MarketMaker': CronHandler<{ topic: 'order.placed'; data: { orderId: string; instrument: string } } | { topic: 'quote.placed'; data: { bidOrderId: string; askOrderId: string; instrument: 'AAPL' } }>
     'ExpireOrders': CronHandler<never>
     'ReplayOrderBook': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { instrument: string; buyOrders: Array<unknown>; sellOrders: Array<unknown>; totalTrades: number; totalOrders: number; replayedAt: number }> | ApiResponse<500, { instrument: string; buyOrders: Array<unknown>; sellOrders: Array<unknown>; totalTrades: number; totalOrders: number; replayedAt: number }>, never>
-    'PlaceOrder': ApiRouteHandler<{ userId: string; side: 'BUY' | 'SELL'; type: 'LIMIT' | 'MARKET'; instrument: 'AAPL'; price?: number; quantity: number; timeInForce: 'GTC' | 'DAY' | 'IOC' }, ApiResponse<200, { orderId: string; status: string }> | ApiResponse<201, { orderId: string }> | ApiResponse<400, { error: string }>, { topic: 'order.placed'; data: { orderId: string; instrument: 'AAPL' } }>
-    'CancelOrder': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { orderId: string; status: string }> | ApiResponse<400, { error: string }> | ApiResponse<404, { error: string }> | ApiResponse<500, { error: string }>, { topic: 'order.cancelled'; data: { orderId: string; instrument: 'AAPL'; side: 'BUY' | 'SELL' } }>
+    'PlaceOrder': ApiRouteHandler<{ userId: string; side: 'BUY' | 'SELL'; type: 'LIMIT' | 'MARKET'; instrument: 'AAPL'; price?: number; quantity: number; timeInForce: 'GTC' | 'DAY' | 'IOC' }, ApiResponse<200, { orderId: string; status: string }> | ApiResponse<201, { orderId: string }> | ApiResponse<400, { error: string }>, { topic: 'order.placed'; data: { orderId: string; instrument: string } }>
+    'CancelOrder': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { orderId: string; status: string }> | ApiResponse<400, { error: string }> | ApiResponse<404, { error: string }> | ApiResponse<500, { error: string }>, { topic: 'order.cancelled'; data: { orderId: string; instrument: string; side: string } }>
     'StateAuditJob': CronHandler<{ topic: 'notification'; data: { templateId: string; email: string; templateData: Record<string, unknown> } }>
     'ProcessFoodOrder': EventHandler<{ email: string; quantity: number; petId: string }, { topic: 'notification'; data: { templateId: string; email: string; templateData: Record<string, unknown> } }>
     'Notification': EventHandler<{ templateId: string; email: string; templateData: Record<string, unknown> }, never>

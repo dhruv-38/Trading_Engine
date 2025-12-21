@@ -1,5 +1,5 @@
-import { EventConfig, Handlers } from "motia";
-import { Order, OrderPlacedPayloadSchema } from "../services/types";
+import { EventConfig, Handlers, InternalStateManager } from "motia";
+import { Order, OrderPlacedPayloadSchema, Position, Trade } from "../services/types";
 import { OrderBook } from "../services/order-book";
 import { MatchingEngine } from "../services/matching-engine";
 
@@ -51,6 +51,10 @@ export const handler: Handlers['ProcessOrder'] = async (input, { state, logger, 
     
     for (const trade of trades) {
         await state.set('trades', trade.id, trade);
+        
+        await updatePosition(state, trade, 'buy');
+        await updatePosition(state, trade, 'sell');
+        
         await emit({
             topic: 'trade.executed',
             data: {
@@ -125,4 +129,51 @@ export const handler: Handlers['ProcessOrder'] = async (input, { state, logger, 
             logger.error('Cleanup failed', { cleanupError, orderId });
         }
     }
+}
+
+async function updatePosition(state: InternalStateManager, trade: Trade, side: 'buy' | 'sell') {
+    const buyOrder = await state.get<Order>('orders', trade.buyOrderId);
+    const sellOrder = await state.get<Order>('orders', trade.sellOrderId);
+    
+    if (!buyOrder || !sellOrder) return;
+    
+    const userId = side === 'buy' ? buyOrder.userId : sellOrder.userId;
+    const positionKey = `${userId}:${trade.instrument}`;
+    
+    let position = await state.get<Position>('positions', positionKey);
+    
+    if (!position) {
+        position = {
+            userId,
+            instrument: trade.instrument,
+            quantity: 0,
+            averagePrice: 0,
+            realizedPnL: 0,
+            unrealizedPnL: 0,
+            lastUpdated: Date.now(),
+        };
+    }
+    
+    const quantityChange = side === 'buy' ? trade.quantity : -trade.quantity;
+    const oldQuantity = position.quantity;
+    const newQuantity = oldQuantity + quantityChange;
+    
+    if (newQuantity !== 0) {
+        const oldValue = oldQuantity * position.averagePrice;
+        const newValue = quantityChange * trade.price;
+        position.averagePrice = Math.abs((oldValue + newValue) / newQuantity);
+    }
+    
+    if (Math.sign(oldQuantity) !== Math.sign(newQuantity) && oldQuantity !== 0) {
+        const closedQuantity = Math.min(Math.abs(oldQuantity), Math.abs(quantityChange));
+        const pnlPerUnit = side === 'buy' 
+            ? position.averagePrice - trade.price 
+            : trade.price - position.averagePrice;
+        position.realizedPnL += closedQuantity * pnlPerUnit;
+    }
+    
+    position.quantity = newQuantity;
+    position.lastUpdated = Date.now();
+    
+    await state.set('positions', positionKey, position);
 }
